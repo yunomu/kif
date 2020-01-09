@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package ptypes;
+
+message Header {
+  string name = 1;
+  string value = 2;
+}
+
+message Pos {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message FinishedStatus {
+  enum Id {
+    NOT_FINISHED = 0;
+    SUSPEND = 1;
+    SURRENDER = 2;
+    DRAW = 3;
+    REPETITION_DRAW = 4;
+    CHECKMATE = 5;
+    OVER_TIME_LIMIT = 6;
+    FOUL_LOSS = 7;
+    FOUL_WIN = 8;
+    NYUGYOKU_WIN = 9;
+  }
+}
+
+message Piece {
+  enum Id {
+    NULL = 0;
+    GYOKU = 1;
+    HISHA = 2;
+    RYU = 3;
+    KAKU = 4;
+    UMA = 5;
+    KIN = 6;
+    GIN = 7;
+    NARI_GIN = 8;
+    KEI = 9;
+    NARI_KEI = 10;
+    KYOU = 11;
+    NARI_KYOU = 12;
+    FU = 13;
+    TO = 14;
+  }
+}
+
+message Modifier {
+  enum Id {
+    NULL = 0;
+    PROMOTE = 1;
+    PUTTED = 2;
+  }
+}
+
+message Step {
+  int32 seq = 1;
+  Pos dst = 2;
+  FinishedStatus.Id finished_status = 3;
+  Piece.Id piece = 4;
+  Modifier.Id modifier = 5;
+  Pos src = 6;
+  int32 thinking_sec = 7;
+  int32 elapsed_sec = 8;
+  repeated string notes = 9;
+}
+
+message Kif {
+  repeated Header headers = 1;
+  repeated Step steps = 2;
+}
