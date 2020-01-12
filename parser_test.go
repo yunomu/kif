@@ -1,4 +1,4 @@
-package parser
+package kif
 
 import (
 	_ "testing"

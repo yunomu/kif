@@ -13,9 +13,7 @@ import (
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 
-	"github.com/yunomu/kif/parser"
-	"github.com/yunomu/kif/ptypes"
-	"github.com/yunomu/kif/writer"
+	"github.com/yunomu/kif"
 )
 
 var (
@@ -36,29 +34,29 @@ func init() {
 
 var (
 	sjisDecoder = japanese.ShiftJIS.NewDecoder()
-	kifWriter   = writer.NewWriter()
+	kifWriter   = kif.NewWriter()
 )
 
-func sjisRead(in io.Reader) (*ptypes.Kif, error) {
-	return parser.Parse(transform.NewReader(in, sjisDecoder))
+func sjisRead(in io.Reader) (*kif.Kif, error) {
+	return kif.Parse(transform.NewReader(in, sjisDecoder))
 }
 
-func sjisWrite(out io.Writer, kif *ptypes.Kif) error {
+func sjisWrite(out io.Writer, kif *kif.Kif) error {
 	return kifWriter.Write(transform.NewWriter(out, sjisDecoder), kif)
 }
 
-func jsonRead(in io.Reader) (*ptypes.Kif, error) {
+func jsonRead(in io.Reader) (*kif.Kif, error) {
 	unmarshaler := &jsonpb.Unmarshaler{
 		AllowUnknownFields: true,
 	}
-	kif := &ptypes.Kif{}
+	kif := &kif.Kif{}
 	if err := unmarshaler.Unmarshal(in, kif); err != nil {
 		return nil, err
 	}
 	return kif, nil
 }
 
-func jsonWrite(out io.Writer, kif *ptypes.Kif) error {
+func jsonWrite(out io.Writer, kif *kif.Kif) error {
 	marshaler := &jsonpb.Marshaler{
 		Indent:       "  ",
 		EmitDefaults: true,
@@ -66,19 +64,19 @@ func jsonWrite(out io.Writer, kif *ptypes.Kif) error {
 	return marshaler.Marshal(out, kif)
 }
 
-func binRead(in io.Reader) (*ptypes.Kif, error) {
+func binRead(in io.Reader) (*kif.Kif, error) {
 	bs, err := ioutil.ReadAll(in)
 	if err != nil {
 		return nil, err
 	}
-	kif := &ptypes.Kif{}
+	kif := &kif.Kif{}
 	if err := proto.Unmarshal(bs, kif); err != nil {
 		return nil, err
 	}
 	return kif, nil
 }
 
-func binWrite(out io.Writer, kif *ptypes.Kif) error {
+func binWrite(out io.Writer, kif *kif.Kif) error {
 	bs, err := proto.Marshal(kif)
 	if err != nil {
 		return err
@@ -88,8 +86,8 @@ func binWrite(out io.Writer, kif *ptypes.Kif) error {
 }
 
 func parseFormat(fmt string) (
-	read func(io.Reader) (*ptypes.Kif, error),
-	write func(io.Writer, *ptypes.Kif) error,
+	read func(io.Reader) (*kif.Kif, error),
+	write func(io.Writer, *kif.Kif) error,
 ) {
 	read = sjisRead
 	write = sjisWrite
@@ -100,7 +98,7 @@ func parseFormat(fmt string) (
 		case 'S':
 			write = sjisWrite
 		case 'u':
-			read = parser.Parse
+			read = kif.Parse
 		case 'U':
 			write = kifWriter.Write
 		case 'j':

@@ -1,4 +1,4 @@
-package parser
+package kif
 
 import (
 	"fmt"
@@ -6,8 +6,6 @@ import (
 	"unicode"
 
 	"golang.org/x/text/runes"
-
-	"github.com/yunomu/kif/ptypes"
 )
 
 var (
@@ -62,7 +60,7 @@ func (p *stepParser) unread() {
 	p.curr--
 }
 
-func (p *stepParser) skip(*ptypes.Step) error {
+func (p *stepParser) skip(*Step) error {
 	for {
 		r, err := p.next()
 		if err == EOS {
@@ -160,7 +158,7 @@ func (p *stepParser) readInt() (int, error) {
 	return int(i), nil
 }
 
-func (p *stepParser) readSeq(step *ptypes.Step) error {
+func (p *stepParser) readSeq(step *Step) error {
 	i, err := p.readInt()
 	if err != nil {
 		return err
@@ -169,7 +167,7 @@ func (p *stepParser) readSeq(step *ptypes.Step) error {
 	return nil
 }
 
-func (p *stepParser) readPhase(*ptypes.Step) error {
+func (p *stepParser) readPhase(*Step) error {
 	_, err := p.readRunes([]rune("▲△"))
 	if err == ErrMismatch {
 		// skip
@@ -181,83 +179,54 @@ func (p *stepParser) readPhase(*ptypes.Step) error {
 	return nil
 }
 
-const (
-	xstr = " １２３４５６７８９"
-	ystr = " 一二三四五六七八九"
-)
-
-func (p *stepParser) readDst(step *ptypes.Step) error {
+func (p *stepParser) readDst(step *Step) error {
 	if err := p.readString("同　"); err == nil {
 		return nil
 	} else if err != ErrMismatch {
 		return err
 	}
 
-	xidx, err := p.readRunes([]rune(xstr))
+	xidx, err := p.readRunes(xstr)
 	if err != nil {
 		return err
 	}
 
-	yidx, err := p.readRunes([]rune(ystr))
+	yidx, err := p.readRunes(ystr)
 	if err != nil {
 		return err
 	}
 
-	step.Dst = &ptypes.Pos{X: int32(xidx), Y: int32(yidx)}
+	step.Dst = &Pos{X: int32(xidx), Y: int32(yidx)}
 	return nil
 }
 
-var pieceStr = []string{
-	" ",
-	"玉",
-	"飛",
-	"龍",
-	"角",
-	"馬",
-	"金",
-	"銀",
-	"成銀",
-	"桂",
-	"成桂",
-	"香",
-	"成香",
-	"歩",
-	"と",
-	// synonym
-	"王",
-	"竜",
-	"全",
-	"圭",
-	"杏",
-}
-
-func (p *stepParser) readPiece(step *ptypes.Step) error {
-	pi, err := p.readStrings(pieceStr)
+func (p *stepParser) readPiece(step *Step) error {
+	pi, err := p.readStrings(pieceNames)
 	if err != nil {
 		return err
 	}
 
-	var ret ptypes.Piece_Id
+	var ret Piece_Id
 	switch pi {
 	case 15:
-		ret = ptypes.Piece_GYOKU
+		ret = Piece_GYOKU
 	case 16:
-		ret = ptypes.Piece_RYU
+		ret = Piece_RYU
 	case 17:
-		ret = ptypes.Piece_NARI_GIN
+		ret = Piece_NARI_GIN
 	case 18:
-		ret = ptypes.Piece_NARI_KEI
+		ret = Piece_NARI_KEI
 	case 19:
-		ret = ptypes.Piece_NARI_KYOU
+		ret = Piece_NARI_KYOU
 	default:
-		ret = ptypes.Piece_Id(pi)
+		ret = Piece_Id(pi)
 	}
 
 	step.Piece = ret
 	return nil
 }
 
-func (p *stepParser) readModifier(step *ptypes.Step) error {
+func (p *stepParser) readModifier(step *Step) error {
 	rs := []rune("打成")
 	i, err := p.readRunes(rs)
 	if err == ErrMismatch {
@@ -267,12 +236,12 @@ func (p *stepParser) readModifier(step *ptypes.Step) error {
 		return err
 	}
 
-	var ret ptypes.Modifier_Id
+	var ret Modifier_Id
 	switch rs[i] {
 	case '打':
-		ret = ptypes.Modifier_PUTTED
+		ret = Modifier_PUTTED
 	case '成':
-		ret = ptypes.Modifier_PROMOTE
+		ret = Modifier_PROMOTE
 	default:
 		return fmt.Errorf("unknown modifier")
 	}
@@ -281,7 +250,7 @@ func (p *stepParser) readModifier(step *ptypes.Step) error {
 	return nil
 }
 
-func (p *stepParser) readSrc(step *ptypes.Step) error {
+func (p *stepParser) readSrc(step *Step) error {
 	if err := p.readRune('('); err == ErrMismatch {
 		// putted
 		return nil
@@ -305,37 +274,24 @@ func (p *stepParser) readSrc(step *ptypes.Step) error {
 		return err
 	}
 
-	step.Src = &ptypes.Pos{
+	step.Src = &Pos{
 		X: int32(xi),
 		Y: int32(yi),
 	}
 	return nil
 }
 
-var finStats = []string{
-	" ",
-	"中断",
-	"投了",
-	"持将棋",
-	"千日手",
-	"詰み",
-	"切れ負け",
-	"反則勝ち",
-	"反則負け",
-	"入玉勝ち",
-}
-
-func (p *stepParser) readMove(step *ptypes.Step) error {
+func (p *stepParser) readMove(step *Step) error {
 	movei, err := p.readStrings(finStats)
 	if err == nil {
-		step.FinishedStatus = ptypes.FinishedStatus_Id(movei)
+		step.FinishedStatus = FinishedStatus_Id(movei)
 		return nil
 	} else if err != ErrMismatch {
 		return err
 	}
 
-	for _, f := range []func(*ptypes.Step) error{
-		func(step *ptypes.Step) error {
+	for _, f := range []func(*Step) error{
+		func(step *Step) error {
 			err := p.readDst(step)
 			if err != nil {
 				return err
@@ -355,7 +311,7 @@ func (p *stepParser) readMove(step *ptypes.Step) error {
 	return nil
 }
 
-func (p *stepParser) readTimestamp(step *ptypes.Step) error {
+func (p *stepParser) readTimestamp(step *Step) error {
 	if err := p.readRune('('); err != nil {
 		return err
 	}
@@ -421,19 +377,19 @@ func (p *stepParser) readTimestamp(step *ptypes.Step) error {
 	return nil
 }
 
-func ParseStep(in string) (*ptypes.Step, error) {
+func parseStep(in string) (*Step, error) {
 	p := &stepParser{
 		line: []rune(in),
 	}
 
-	step := &ptypes.Step{}
-	var prevDst *ptypes.Pos
-	for _, f := range []func(*ptypes.Step) error{
+	step := &Step{}
+	var prevDst *Pos
+	for _, f := range []func(*Step) error{
 		p.skip,
 		p.readSeq,
 		p.skip,
 		p.readPhase,
-		func(step *ptypes.Step) error {
+		func(step *Step) error {
 			err := p.readMove(step)
 			if err != nil {
 				return err

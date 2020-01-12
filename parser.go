@@ -1,4 +1,4 @@
-package parser
+package kif
 
 import (
 	"bufio"
@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-
-	"github.com/yunomu/kif/ptypes"
 )
 
 type lineReader struct {
@@ -58,7 +56,7 @@ func dropBOM(r *bufio.Reader) error {
 	return nil
 }
 
-func Parse(in io.Reader) (*ptypes.Kif, error) {
+func Parse(in io.Reader) (*Kif, error) {
 	var count int
 	br := bufio.NewReader(in)
 
@@ -67,7 +65,7 @@ func Parse(in io.Reader) (*ptypes.Kif, error) {
 	}
 	r := newLineReader(br)
 
-	ret := &ptypes.Kif{}
+	ret := &Kif{}
 
 	// read header
 	for {
@@ -90,14 +88,14 @@ func Parse(in io.Reader) (*ptypes.Kif, error) {
 			break
 		}
 
-		ret.Headers = append(ret.Headers, &ptypes.Header{
+		ret.Headers = append(ret.Headers, &Header{
 			Name:  header[0],
 			Value: header[1],
 		})
 	}
 	r.Read()
 
-	var prevStep *ptypes.Step
+	var prevStep *Step
 	for {
 		count++
 
@@ -116,12 +114,12 @@ func Parse(in io.Reader) (*ptypes.Kif, error) {
 			prevStep.Notes = append(prevStep.Notes, line[1:])
 			continue
 		}
-		if prevStep.GetFinishedStatus() != ptypes.FinishedStatus_NOT_FINISHED {
+		if prevStep.GetFinishedStatus() != FinishedStatus_NOT_FINISHED {
 			prevStep.Notes = append(prevStep.Notes, line)
 			continue
 		}
 
-		step, err := ParseStep(line)
+		step, err := parseStep(line)
 		if err != nil {
 			return nil, errors.Wrapf(err, "line=%v %v", count, line)
 		}
