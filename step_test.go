@@ -223,7 +223,7 @@ func TestStepParser_readMove(t *testing.T) {
 }
 
 func TestParseStep(t *testing.T) {
-	step, err := ParseStep("  73 ７八金打   ( 0:00/00:00:00)")
+	step, err := parseStep("  73 ７八金打   ( 0:00/00:00:00)")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -231,7 +231,7 @@ func TestParseStep(t *testing.T) {
 		t.Fatalf("unexpected seq: %v", step.Seq)
 	}
 
-	step2, err := ParseStep("  1 ７八成銀(69)   ( 0:10/00:00:00)")
+	step2, err := parseStep("  1 ７八成銀(69)   ( 0:10/00:00:00)")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
