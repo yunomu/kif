@@ -6,6 +6,8 @@ import (
 	"unicode"
 
 	"golang.org/x/text/runes"
+
+	"github.com/yunomu/kif/ptypes"
 )
 
 var (
@@ -60,7 +62,7 @@ func (p *stepParser) unread() {
 	p.curr--
 }
 
-func (p *stepParser) skip(*Step) error {
+func (p *stepParser) skip(*ptypes.Step) error {
 	for {
 		r, err := p.next()
 		if err == EOS {
@@ -158,7 +160,7 @@ func (p *stepParser) readInt() (int, error) {
 	return int(i), nil
 }
 
-func (p *stepParser) readSeq(step *Step) error {
+func (p *stepParser) readSeq(step *ptypes.Step) error {
 	i, err := p.readInt()
 	if err != nil {
 		return err
@@ -167,7 +169,7 @@ func (p *stepParser) readSeq(step *Step) error {
 	return nil
 }
 
-func (p *stepParser) readPhase(*Step) error {
+func (p *stepParser) readPhase(*ptypes.Step) error {
 	_, err := p.readRunes([]rune("▲△"))
 	if err == ErrMismatch {
 		// skip
@@ -179,7 +181,7 @@ func (p *stepParser) readPhase(*Step) error {
 	return nil
 }
 
-func (p *stepParser) readDst(step *Step) error {
+func (p *stepParser) readDst(step *ptypes.Step) error {
 	if err := p.readString("同　"); err == nil {
 		return nil
 	} else if err != ErrMismatch {
@@ -196,37 +198,37 @@ func (p *stepParser) readDst(step *Step) error {
 		return err
 	}
 
-	step.Dst = &Pos{X: int32(xidx), Y: int32(yidx)}
+	step.Dst = &ptypes.Pos{X: int32(xidx), Y: int32(yidx)}
 	return nil
 }
 
-func (p *stepParser) readPiece(step *Step) error {
+func (p *stepParser) readPiece(step *ptypes.Step) error {
 	pi, err := p.readStrings(pieceNames)
 	if err != nil {
 		return err
 	}
 
-	var ret Piece_Id
+	var ret ptypes.Piece_Id
 	switch pi {
 	case 15:
-		ret = Piece_GYOKU
+		ret = ptypes.Piece_GYOKU
 	case 16:
-		ret = Piece_RYU
+		ret = ptypes.Piece_RYU
 	case 17:
-		ret = Piece_NARI_GIN
+		ret = ptypes.Piece_NARI_GIN
 	case 18:
-		ret = Piece_NARI_KEI
+		ret = ptypes.Piece_NARI_KEI
 	case 19:
-		ret = Piece_NARI_KYOU
+		ret = ptypes.Piece_NARI_KYOU
 	default:
-		ret = Piece_Id(pi)
+		ret = ptypes.Piece_Id(pi)
 	}
 
 	step.Piece = ret
 	return nil
 }
 
-func (p *stepParser) readModifier(step *Step) error {
+func (p *stepParser) readModifier(step *ptypes.Step) error {
 	rs := []rune("打成")
 	i, err := p.readRunes(rs)
 	if err == ErrMismatch {
@@ -236,12 +238,12 @@ func (p *stepParser) readModifier(step *Step) error {
 		return err
 	}
 
-	var ret Modifier_Id
+	var ret ptypes.Modifier_Id
 	switch rs[i] {
 	case '打':
-		ret = Modifier_PUTTED
+		ret = ptypes.Modifier_PUTTED
 	case '成':
-		ret = Modifier_PROMOTE
+		ret = ptypes.Modifier_PROMOTE
 	default:
 		return fmt.Errorf("unknown modifier")
 	}
@@ -250,7 +252,7 @@ func (p *stepParser) readModifier(step *Step) error {
 	return nil
 }
 
-func (p *stepParser) readSrc(step *Step) error {
+func (p *stepParser) readSrc(step *ptypes.Step) error {
 	if err := p.readRune('('); err == ErrMismatch {
 		// putted
 		return nil
@@ -274,24 +276,24 @@ func (p *stepParser) readSrc(step *Step) error {
 		return err
 	}
 
-	step.Src = &Pos{
+	step.Src = &ptypes.Pos{
 		X: int32(xi),
 		Y: int32(yi),
 	}
 	return nil
 }
 
-func (p *stepParser) readMove(step *Step) error {
+func (p *stepParser) readMove(step *ptypes.Step) error {
 	movei, err := p.readStrings(finStats)
 	if err == nil {
-		step.FinishedStatus = FinishedStatus_Id(movei)
+		step.FinishedStatus = ptypes.FinishedStatus_Id(movei)
 		return nil
 	} else if err != ErrMismatch {
 		return err
 	}
 
-	for _, f := range []func(*Step) error{
-		func(step *Step) error {
+	for _, f := range []func(*ptypes.Step) error{
+		func(step *ptypes.Step) error {
 			err := p.readDst(step)
 			if err != nil {
 				return err
@@ -311,7 +313,7 @@ func (p *stepParser) readMove(step *Step) error {
 	return nil
 }
 
-func (p *stepParser) readTimestamp(step *Step) error {
+func (p *stepParser) readTimestamp(step *ptypes.Step) error {
 	if err := p.readRune('('); err != nil {
 		return err
 	}
@@ -377,19 +379,19 @@ func (p *stepParser) readTimestamp(step *Step) error {
 	return nil
 }
 
-func parseStep(in string) (*Step, error) {
+func parseStep(in string) (*ptypes.Step, error) {
 	p := &stepParser{
 		line: []rune(in),
 	}
 
-	step := &Step{}
-	var prevDst *Pos
-	for _, f := range []func(*Step) error{
+	step := &ptypes.Step{}
+	var prevDst *ptypes.Pos
+	for _, f := range []func(*ptypes.Step) error{
 		p.skip,
 		p.readSeq,
 		p.skip,
 		p.readPhase,
-		func(step *Step) error {
+		func(step *ptypes.Step) error {
 			err := p.readMove(step)
 			if err != nil {
 				return err

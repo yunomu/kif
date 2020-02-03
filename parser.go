@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+
+	"github.com/yunomu/kif/ptypes"
 )
 
 type lineReader struct {
@@ -56,7 +58,7 @@ func dropBOM(r *bufio.Reader) error {
 	return nil
 }
 
-func Parse(in io.Reader) (*Kif, error) {
+func Parse(in io.Reader) (*ptypes.Kif, error) {
 	var count int
 	br := bufio.NewReader(in)
 
@@ -65,7 +67,7 @@ func Parse(in io.Reader) (*Kif, error) {
 	}
 	r := newLineReader(br)
 
-	ret := &Kif{}
+	ret := &ptypes.Kif{}
 
 	// read header
 	for {
@@ -88,14 +90,14 @@ func Parse(in io.Reader) (*Kif, error) {
 			break
 		}
 
-		ret.Headers = append(ret.Headers, &Header{
+		ret.Headers = append(ret.Headers, &ptypes.Header{
 			Name:  header[0],
 			Value: header[1],
 		})
 	}
 	r.Read()
 
-	var prevStep *Step
+	var prevStep *ptypes.Step
 	for {
 		count++
 
@@ -114,7 +116,7 @@ func Parse(in io.Reader) (*Kif, error) {
 			prevStep.Notes = append(prevStep.Notes, line[1:])
 			continue
 		}
-		if prevStep.GetFinishedStatus() != FinishedStatus_NOT_FINISHED {
+		if prevStep.GetFinishedStatus() != ptypes.FinishedStatus_NOT_FINISHED {
 			prevStep.Notes = append(prevStep.Notes, line)
 			continue
 		}

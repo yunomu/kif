@@ -3,9 +3,11 @@ package kif
 import (
 	"fmt"
 	"time"
+
+	"github.com/yunomu/kif/ptypes"
 )
 
-func (s *Step) PrintPhase() string {
+func PrintPhase(s *ptypes.Step) string {
 	if s.Seq == 0 {
 		return ""
 	}
@@ -40,31 +42,31 @@ var pieceNames = []string{
 	"杏",
 }
 
-func (p Piece_Id) Print() string {
+func PrintPiece(p ptypes.Piece_Id) string {
 	return pieceNames[int(p)]
 }
 
-func PieceFromName(name string) Piece_Id {
+func PieceFromName(name string) ptypes.Piece_Id {
 	for i, s := range pieceNames {
 		if s == name {
 			switch i {
 			case 15:
-				return Piece_GYOKU
+				return ptypes.Piece_GYOKU
 			case 16:
-				return Piece_RYU
+				return ptypes.Piece_RYU
 			case 17:
-				return Piece_NARI_GIN
+				return ptypes.Piece_NARI_GIN
 			case 18:
-				return Piece_NARI_KEI
+				return ptypes.Piece_NARI_KEI
 			case 19:
-				return Piece_NARI_KYOU
+				return ptypes.Piece_NARI_KYOU
 			default:
-				return Piece_Id(i)
+				return ptypes.Piece_Id(i)
 			}
 		}
 	}
 
-	return Piece_NULL
+	return ptypes.Piece_NULL
 }
 
 var (
@@ -72,18 +74,18 @@ var (
 	ystr = []rune(" 一二三四五六七八九")
 )
 
-func (p *Pos) Print() string {
+func PrintPos(p *ptypes.Pos) string {
 	if p == nil || p.X == 0 || p.Y == 0 {
 		return ""
 	}
 	return fmt.Sprintf("%c%c", xstr[p.X], ystr[p.Y])
 }
 
-func (m Modifier_Id) Print() string {
+func PrintModifier(m ptypes.Modifier_Id) string {
 	switch m {
-	case Modifier_PROMOTE:
+	case ptypes.Modifier_PROMOTE:
 		return "成"
-	case Modifier_PUTTED:
+	case ptypes.Modifier_PUTTED:
 		return "打"
 	default:
 		return ""
@@ -103,13 +105,13 @@ var finStats = []string{
 	"入玉勝ち",
 }
 
-func (s FinishedStatus_Id) Print() string {
+func PrintFinishedStatus(s ptypes.FinishedStatus_Id) string {
 	return finStats[int(s)]
 }
 
-func (s *Step) PrintMove() string {
-	if s.FinishedStatus != FinishedStatus_NOT_FINISHED {
-		return s.PrintPhase() + s.FinishedStatus.Print()
+func PrintMove(s *ptypes.Step) string {
+	if s.FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
+		return PrintPhase(s) + PrintFinishedStatus(s.FinishedStatus)
 	}
 
 	var src string
@@ -118,10 +120,10 @@ func (s *Step) PrintMove() string {
 	}
 
 	return fmt.Sprintf("%s%s%s%s%s",
-		s.PrintPhase(),
-		s.Dst.Print(),
-		s.Piece.Print(),
-		s.Modifier.Print(),
+		PrintPhase(s),
+		PrintPos(s.Dst),
+		PrintPiece(s.Piece),
+		PrintModifier(s.Modifier),
 		src,
 	)
 }
@@ -145,7 +147,7 @@ const (
 	endTimeName   = "終了日時"
 )
 
-func (k *Kif) setTime(name string, t time.Time) {
+func setTime(k *ptypes.Kif, name string, t time.Time) {
 	var idx = -1
 	for i, h := range k.Headers {
 		if h.Name == name {
@@ -153,7 +155,7 @@ func (k *Kif) setTime(name string, t time.Time) {
 			break
 		}
 	}
-	h := &Header{
+	h := &ptypes.Header{
 		Name:  name,
 		Value: t.Format(timeFormat),
 	}
@@ -163,10 +165,10 @@ func (k *Kif) setTime(name string, t time.Time) {
 	k.Headers = append(k.Headers, h)
 }
 
-func (k *Kif) SetStartTime(t time.Time) {
-	k.setTime(startTimeName, t)
+func SetStartTime(k *ptypes.Kif, t time.Time) {
+	setTime(k, startTimeName, t)
 }
 
-func (k *Kif) SetEndTime(t time.Time) {
-	k.setTime(endTimeName, t)
+func SetEndTime(k *ptypes.Kif, t time.Time) {
+	setTime(k, endTimeName, t)
 }

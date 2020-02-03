@@ -2,9 +2,11 @@ package kif
 
 import (
 	"sort"
+
+	"github.com/yunomu/kif/ptypes"
 )
 
-type stepSlice []*Step
+type stepSlice []*ptypes.Step
 
 func (s stepSlice) Len() int               { return len(s) }
 func (s stepSlice) Less(i int, j int) bool { return s[i].GetSeq() < s[j].GetSeq() }
@@ -29,7 +31,7 @@ var stdHeaders = []string{
 	"後手省略名",
 }
 
-type headerSlice []*Header
+type headerSlice []*ptypes.Header
 
 func (h headerSlice) Len() int { return len(h) }
 
@@ -52,7 +54,7 @@ func (h headerSlice) Less(i, j int) bool {
 
 func (h headerSlice) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
-func (k *Kif) Normalize() {
+func Normalize(k *ptypes.Kif) {
 	sort.Sort(headerSlice(k.Headers))
 	sort.Sort(stepSlice(k.Steps))
 }

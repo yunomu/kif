@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package kif;
+package ptypes;
 
 message Header {
   string name = 1;

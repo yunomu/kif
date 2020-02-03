@@ -3,6 +3,8 @@ package kif
 import (
 	"fmt"
 	"io"
+
+	"github.com/yunomu/kif/ptypes"
 )
 
 type Writer struct {
@@ -29,11 +31,11 @@ func NewWriter(ops ...WriterOption) *Writer {
 	return w
 }
 
-func stepToLine(step *Step) string {
+func stepToLine(step *ptypes.Step) string {
 	return fmt.Sprintf(
 		"%4d %-12s (%s/%s)",
 		step.Seq,
-		step.PrintMove(),
+		PrintMove(step),
 		PrintThinking(step.ThinkingSec),
 		PrintElapsed(step.ElapsedSec),
 	)
@@ -54,8 +56,8 @@ func (p *linePrinter) Print(str string) error {
 	return nil
 }
 
-func (w *Writer) Write(out io.Writer, kif *Kif) error {
-	kif.Normalize()
+func (w *Writer) Write(out io.Writer, kif *ptypes.Kif) error {
+	Normalize(kif)
 	p := &linePrinter{
 		newline: w.newline,
 		w:       out,
