@@ -5,6 +5,9 @@ import (
 	"io"
 	"strings"
 
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
+
 	"github.com/pkg/errors"
 
 	"github.com/yunomu/kif/ptypes"
@@ -58,9 +61,40 @@ func dropBOM(r *bufio.Reader) error {
 	return nil
 }
 
-func Parse(in io.Reader) (*ptypes.Kif, error) {
+type options struct {
+	transformReader func(io.Reader) io.Reader
+}
+
+type ParseOption func(*options)
+
+var (
+	sjisDecoder = japanese.ShiftJIS.NewDecoder()
+	sjisReader  = func(r io.Reader) io.Reader {
+		return transform.NewReader(r, sjisDecoder)
+	}
+)
+
+var ParseEncodingSJIS ParseOption = func(ops *options) {
+	ops.transformReader = sjisReader
+}
+
+var ParseEncodingUTF8 ParseOption = func(ops *options) {
+	ops.transformReader = func(r io.Reader) io.Reader {
+		return r
+	}
+}
+
+func Parse(in io.Reader, ops ...ParseOption) (*ptypes.Kif, error) {
+	options := &options{
+		transformReader: sjisReader,
+	}
+
+	for _, f := range ops {
+		f(options)
+	}
+
 	var count int
-	br := bufio.NewReader(in)
+	br := bufio.NewReader(options.transformReader(in))
 
 	if err := dropBOM(br); err != nil {
 		return nil, err

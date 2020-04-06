@@ -5,10 +5,13 @@ import (
 	"io"
 
 	"github.com/yunomu/kif/ptypes"
+	"golang.org/x/text/transform"
 )
 
 type Writer struct {
 	newline string
+
+	encodingTransformer func(io.Writer) io.Writer
 }
 
 type WriterOption func(*Writer)
@@ -19,9 +22,24 @@ func SetNewline(newline string) WriterOption {
 	}
 }
 
+var sjisWriter = func(wr io.Writer) io.Writer {
+	return transform.NewWriter(wr, sjisDecoder)
+}
+
+var WriteEncodingSJIS WriterOption = func(w *Writer) {
+	w.encodingTransformer = sjisWriter
+}
+
+var WriteEncodingUTF8 WriterOption = func(w *Writer) {
+	w.encodingTransformer = func(wr io.Writer) io.Writer {
+		return wr
+	}
+}
+
 func NewWriter(ops ...WriterOption) *Writer {
 	w := &Writer{
-		newline: "\n",
+		newline:             "\n",
+		encodingTransformer: sjisWriter,
 	}
 
 	for _, f := range ops {
@@ -60,7 +78,7 @@ func (w *Writer) Write(out io.Writer, kif *ptypes.Kif) error {
 	Normalize(kif)
 	p := &linePrinter{
 		newline: w.newline,
-		w:       out,
+		w:       w.encodingTransformer(out),
 	}
 
 	for _, h := range kif.Headers {
