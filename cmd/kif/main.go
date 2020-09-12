@@ -93,11 +93,11 @@ func parseFormat(fmt string) (
 			write = sjisWrite
 		case 'u':
 			read = func(in io.Reader) (*ptypes.Kif, error) {
-				return kif.Parse(in, kif.ParseEncodingUTF8)
+				return kif.Parse(in, kif.ParseEncodingUTF8())
 			}
 		case 'U':
 			write = func(out io.Writer, k *ptypes.Kif) error {
-				kifWriter := kif.NewWriter(kif.WriteEncodingUTF8)
+				kifWriter := kif.NewWriter(kif.WriteEncodingUTF8())
 				return kifWriter.Write(out, k)
 			}
 		case 'j':
