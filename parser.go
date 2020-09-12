@@ -74,13 +74,17 @@ var (
 	}
 )
 
-var ParseEncodingSJIS ParseOption = func(ops *options) {
-	ops.transformReader = sjisReader
+func ParseEncodingSJIS() ParseOption {
+	return func(ops *options) {
+		ops.transformReader = sjisReader
+	}
 }
 
-var ParseEncodingUTF8 ParseOption = func(ops *options) {
-	ops.transformReader = func(r io.Reader) io.Reader {
-		return r
+func ParseEncodingUTF8() ParseOption {
+	return func(ops *options) {
+		ops.transformReader = func(r io.Reader) io.Reader {
+			return r
+		}
 	}
 }
 
