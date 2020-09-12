@@ -22,6 +22,7 @@ var (
 	u/U: kif (UTF8)
 	j/J: Protocol Buffer (JSON)
 	b/B: Protocol Buffer (byte strings)
+	  F: SFEN from
 `)
 )
 
@@ -79,6 +80,11 @@ func binWrite(out io.Writer, kif *ptypes.Kif) error {
 	return err
 }
 
+func sfenWrite(out io.Writer, k *ptypes.Kif) error {
+	_, err := out.Write([]byte(kif.ToSFEN(k.Steps)))
+	return err
+}
+
 func parseFormat(fmt string) (
 	read func(io.Reader) (*ptypes.Kif, error),
 	write func(io.Writer, *ptypes.Kif) error,
@@ -108,6 +114,8 @@ func parseFormat(fmt string) (
 			read = binRead
 		case 'B':
 			write = binWrite
+		case 'F':
+			write = sfenWrite
 		}
 	}
 	return
