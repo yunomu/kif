@@ -2,6 +2,8 @@ package kif
 
 import (
 	"testing"
+
+	"github.com/yunomu/kif/ptypes"
 )
 
 func TestStepParser_skip(t *testing.T) {
@@ -63,39 +65,39 @@ func TestStepParser_readInt(t *testing.T) {
 
 func TestStepParser_readPiece(t *testing.T) {
 	var p *stepParser
-	var s *Step
+	var s *ptypes.Step
 
 	p = newStepParser("歩")
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readPiece(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if s.Piece != Piece_FU {
+	if s.Piece != ptypes.Piece_FU {
 		t.Fatalf("expected=FU actual=%v", s.Piece)
 	}
 
 	p = newStepParser("成銀")
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readPiece(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if s.Piece != Piece_NARI_GIN {
+	if s.Piece != ptypes.Piece_NARI_GIN {
 		t.Fatalf("expected=NARI_GIN actual=%v", s.Piece)
 	}
 
 	p = newStepParser("全")
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readPiece(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if s.Piece != Piece_NARI_GIN {
+	if s.Piece != ptypes.Piece_NARI_GIN {
 		t.Fatalf("expected=NARI_GIN actual=%v", s.Piece)
 	}
 }
 
 func TestStepParser_readPhase(t *testing.T) {
 	var p *stepParser
-	s := &Step{}
+	s := &ptypes.Step{}
 
 	p = newStepParser("▲")
 	if err := p.readPhase(s); err != nil {
@@ -117,7 +119,7 @@ func TestStepParser_readPhase(t *testing.T) {
 
 func TestStepParser_readDst(t *testing.T) {
 	var p *stepParser
-	s := &Step{}
+	s := &ptypes.Step{}
 
 	p = &stepParser{
 		line: []rune("７六"),
@@ -132,7 +134,7 @@ func TestStepParser_readDst(t *testing.T) {
 	p = &stepParser{
 		line: []rune("同　"),
 	}
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readDst(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -143,12 +145,12 @@ func TestStepParser_readDst(t *testing.T) {
 
 func TestStepParser_readSrc(t *testing.T) {
 	var p *stepParser
-	var s *Step
+	var s *ptypes.Step
 
 	p = &stepParser{
 		line: []rune("(83)"),
 	}
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readSrc(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -159,7 +161,7 @@ func TestStepParser_readSrc(t *testing.T) {
 	p = &stepParser{
 		line: []rune("　"),
 	}
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readSrc(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -172,7 +174,7 @@ func TestStepParser_readTimestamp(t *testing.T) {
 	var p *stepParser
 
 	p = newStepParser("( 1:23/01:23:45)")
-	s := &Step{}
+	s := &ptypes.Step{}
 	if err := p.readTimestamp(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -201,23 +203,23 @@ func TestStepParser_readString(t *testing.T) {
 
 func TestStepParser_readMove(t *testing.T) {
 	var p *stepParser
-	var s *Step
+	var s *ptypes.Step
 
 	p = newStepParser("７六歩(77)")
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readMove(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if s.FinishedStatus != FinishedStatus_NOT_FINISHED {
+	if s.FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
 		t.Fatalf("unexpected sp_move: %v", s.FinishedStatus)
 	}
 
 	p = newStepParser("投了")
-	s = &Step{}
+	s = &ptypes.Step{}
 	if err := p.readMove(s); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if s.FinishedStatus != FinishedStatus_SURRENDER {
+	if s.FinishedStatus != ptypes.FinishedStatus_SURRENDER {
 		t.Fatalf("unexpected sp_move: %v", s.FinishedStatus)
 	}
 }
