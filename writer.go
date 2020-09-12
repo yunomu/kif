@@ -26,13 +26,17 @@ var sjisWriter = func(wr io.Writer) io.Writer {
 	return transform.NewWriter(wr, sjisDecoder)
 }
 
-var WriteEncodingSJIS WriterOption = func(w *Writer) {
-	w.encodingTransformer = sjisWriter
+func WriteEncodingSJIS() WriterOption {
+	return func(w *Writer) {
+		w.encodingTransformer = sjisWriter
+	}
 }
 
-var WriteEncodingUTF8 WriterOption = func(w *Writer) {
-	w.encodingTransformer = func(wr io.Writer) io.Writer {
-		return wr
+func WriteEncodingUTF8() WriterOption {
+	return func(w *Writer) {
+		w.encodingTransformer = func(wr io.Writer) io.Writer {
+			return wr
+		}
 	}
 }
 
