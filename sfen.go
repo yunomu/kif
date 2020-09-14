@@ -2,7 +2,7 @@ package kif
 
 import (
 	"fmt"
-	"strings"
+	"io"
 
 	"github.com/yunomu/kif/ptypes"
 )
@@ -47,11 +47,25 @@ func StepToSFEN(step *ptypes.Step) string {
 	return drop + sfenPos(step.Src) + sfenPos(step.Dst) + prom
 }
 
-func ToSFEN(steps []*ptypes.Step) string {
-	var ss []string
-	for _, step := range steps {
-		ss = append(ss, StepToSFEN(step))
+func writeSFEN(w io.Writer, delimiter string, steps []*ptypes.Step) error {
+	if len(steps) == 0 || steps[0].FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
+		return nil
 	}
 
-	return strings.Join(ss, " ")
+	if _, err := w.Write([]byte(StepToSFEN(steps[0]))); err != nil {
+		return err
+	}
+
+	sp := []byte(delimiter)
+	for _, step := range steps[1:] {
+		if step.FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
+			break
+		}
+
+		if _, err := w.Write(append(sp, []byte(StepToSFEN(step))...)); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

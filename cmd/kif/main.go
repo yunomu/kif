@@ -81,8 +81,7 @@ func binWrite(out io.Writer, kif *ptypes.Kif) error {
 }
 
 func sfenWrite(out io.Writer, k *ptypes.Kif) error {
-	_, err := out.Write([]byte(kif.ToSFEN(k.Steps)))
-	return err
+	return kif.NewWriter(kif.SetFormat(kif.Format_SFEN)).Write(out, k)
 }
 
 func parseFormat(fmt string) (

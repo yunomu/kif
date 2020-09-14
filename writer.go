@@ -8,17 +8,25 @@ import (
 	"golang.org/x/text/transform"
 )
 
-type Writer struct {
-	newline string
+type Format int
 
+const (
+	Format_KIF Format = iota
+	Format_SFEN
+)
+
+type Writer struct {
+	format Format
+
+	delimiter           string
 	encodingTransformer func(io.Writer) io.Writer
 }
 
 type WriterOption func(*Writer)
 
-func SetNewline(newline string) WriterOption {
+func SetDelimiter(delimiter string) WriterOption {
 	return func(w *Writer) {
-		w.newline = newline
+		w.delimiter = delimiter
 	}
 }
 
@@ -40,9 +48,23 @@ func WriteEncodingUTF8() WriterOption {
 	}
 }
 
+func SetFormat(format Format) WriterOption {
+	return func(w *Writer) {
+		w.format = format
+		switch format {
+		case Format_KIF:
+			w.delimiter = "\n"
+		case Format_SFEN:
+			w.delimiter = " "
+		default:
+			panic(fmt.Sprintf("unknown format: %v", format))
+		}
+	}
+}
+
 func NewWriter(ops ...WriterOption) *Writer {
 	w := &Writer{
-		newline:             "\n",
+		delimiter:           "\n",
 		encodingTransformer: sjisWriter,
 	}
 
@@ -78,10 +100,9 @@ func (p *linePrinter) Print(str string) error {
 	return nil
 }
 
-func (w *Writer) Write(out io.Writer, kif *ptypes.Kif) error {
-	Normalize(kif)
+func (w *Writer) writeKIF(out io.Writer, kif *ptypes.Kif) error {
 	p := &linePrinter{
-		newline: w.newline,
+		newline: w.delimiter,
 		w:       w.encodingTransformer(out),
 	}
 
@@ -107,4 +128,17 @@ func (w *Writer) Write(out io.Writer, kif *ptypes.Kif) error {
 	}
 
 	return nil
+}
+
+func (w *Writer) Write(out io.Writer, kif *ptypes.Kif) error {
+	Normalize(kif)
+
+	switch w.format {
+	case Format_KIF:
+		return w.writeKIF(out, kif)
+	case Format_SFEN:
+		return writeSFEN(out, w.delimiter, kif.Steps)
+	default:
+		return fmt.Errorf("unknown format: %v", w.format)
+	}
 }
