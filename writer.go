@@ -137,7 +137,7 @@ func (w *Writer) Write(out io.Writer, kif *ptypes.Kif) error {
 	case Format_KIF:
 		return w.writeKIF(out, kif)
 	case Format_SFEN:
-		return writeSFEN(out, w.delimiter, kif.Steps)
+		return writeSFEN(out, kif.Steps)
 	default:
 		return fmt.Errorf("unknown format: %v", w.format)
 	}

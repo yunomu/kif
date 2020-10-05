@@ -47,17 +47,17 @@ func StepToSFEN(step *ptypes.Step) string {
 	return drop + sfenPos(step.Src) + sfenPos(step.Dst) + prom
 }
 
-func writeSFEN(w io.Writer, delimiter string, steps []*ptypes.Step) error {
+func writeSFEN(w io.Writer, steps []*ptypes.Step) error {
 	if len(steps) == 0 || steps[0].FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
 		return nil
 	}
 
-	if _, err := w.Write([]byte(StepToSFEN(steps[0]))); err != nil {
+	if _, err := w.Write([]byte("position startpos moves")); err != nil {
 		return err
 	}
 
-	sp := []byte(delimiter)
-	for _, step := range steps[1:] {
+	sp := []byte(" ")
+	for _, step := range steps {
 		if step.FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
 			break
 		}
