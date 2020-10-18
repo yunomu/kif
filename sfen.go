@@ -33,7 +33,7 @@ var sfenPiece = []string{
 	"+P",
 }
 
-func StepToSFEN(step *ptypes.Step) string {
+func stepToSFEN(step *ptypes.Step) string {
 	var drop string
 	if step.Modifier == ptypes.Modifier_PUTTED {
 		drop = sfenPiece[int(step.Piece)]
@@ -52,17 +52,21 @@ func writeSFEN(w io.Writer, steps []*ptypes.Step) error {
 		return nil
 	}
 
-	if _, err := w.Write([]byte("position startpos moves")); err != nil {
+	write := func(s string) error {
+		_, err := w.Write([]byte(s))
 		return err
 	}
 
-	sp := []byte(" ")
+	if err := write("position startpos moves"); err != nil {
+		return err
+	}
+
 	for _, step := range steps {
 		if step.FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
 			break
 		}
 
-		if _, err := w.Write(append(sp, []byte(StepToSFEN(step))...)); err != nil {
+		if err := write(" " + stepToSFEN(step)); err != nil {
 			return err
 		}
 	}
