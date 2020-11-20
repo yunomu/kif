@@ -33,7 +33,7 @@ var sfenPiece = []string{
 	"+P",
 }
 
-func stepToSFEN(step *ptypes.Step) string {
+func StepToMove(step *ptypes.Step) string {
 	var drop string
 	if step.Modifier == ptypes.Modifier_PUTTED {
 		drop = sfenPiece[int(step.Piece)]
@@ -66,7 +66,7 @@ func writeSFEN(w io.Writer, steps []*ptypes.Step) error {
 			break
 		}
 
-		if err := write(" " + stepToSFEN(step)); err != nil {
+		if err := write(" " + StepToMove(step)); err != nil {
 			return err
 		}
 	}
