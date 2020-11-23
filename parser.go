@@ -61,11 +61,11 @@ func dropBOM(r *bufio.Reader) error {
 	return nil
 }
 
-type options struct {
+type Parser struct {
 	transformReader func(io.Reader) io.Reader
 }
 
-type ParseOption func(*options)
+type ParseOption func(*Parser)
 
 var (
 	sjisDecoder = japanese.ShiftJIS.NewDecoder()
@@ -75,30 +75,33 @@ var (
 )
 
 func ParseEncodingSJIS() ParseOption {
-	return func(ops *options) {
-		ops.transformReader = sjisReader
+	return func(p *Parser) {
+		p.transformReader = sjisReader
 	}
 }
 
 func ParseEncodingUTF8() ParseOption {
-	return func(ops *options) {
-		ops.transformReader = func(r io.Reader) io.Reader {
+	return func(p *Parser) {
+		p.transformReader = func(r io.Reader) io.Reader {
 			return r
 		}
 	}
 }
 
-func Parse(in io.Reader, ops ...ParseOption) (*ptypes.Kif, error) {
-	options := &options{
+func NewParser(ops ...ParseOption) *Parser {
+	p := &Parser{
 		transformReader: sjisReader,
 	}
-
 	for _, f := range ops {
-		f(options)
+		f(p)
 	}
 
+	return p
+}
+
+func (p *Parser) Parse(in io.Reader) (*ptypes.Kif, error) {
 	var count int
-	br := bufio.NewReader(options.transformReader(in))
+	br := bufio.NewReader(p.transformReader(in))
 
 	if err := dropBOM(br); err != nil {
 		return nil, err

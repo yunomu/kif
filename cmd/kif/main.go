@@ -32,7 +32,7 @@ func init() {
 }
 
 func sjisRead(in io.Reader) (*ptypes.Kif, error) {
-	return kif.Parse(in)
+	return kif.NewParser().Parse(in)
 }
 
 func sjisWrite(out io.Writer, k *ptypes.Kif) error {
@@ -98,7 +98,7 @@ func parseFormat(fmt string) (
 			write = sjisWrite
 		case 'u':
 			read = func(in io.Reader) (*ptypes.Kif, error) {
-				return kif.Parse(in, kif.ParseEncodingUTF8())
+				return kif.NewParser(kif.ParseEncodingUTF8()).Parse(in)
 			}
 		case 'U':
 			write = func(out io.Writer, k *ptypes.Kif) error {
