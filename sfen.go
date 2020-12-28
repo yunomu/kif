@@ -34,6 +34,10 @@ var sfenPiece = []string{
 }
 
 func StepToMove(step *ptypes.Step) string {
+	if step.FinishedStatus != ptypes.FinishedStatus_NOT_FINISHED {
+		return ""
+	}
+
 	var drop string
 	if step.Modifier == ptypes.Modifier_PUTTED {
 		drop = sfenPiece[int(step.Piece)]
